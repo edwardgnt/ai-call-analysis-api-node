@@ -1,4 +1,5 @@
 import Fastify from "fastify";
+import { analysisRoutes } from "./modules/analyses/analysis.routes.js";
 
 export function buildApp() {
   const app = Fastify({
@@ -11,6 +12,10 @@ export function buildApp() {
       service: "ai-call-analysis-api-node",
       timestamp: new Date().toISOString(),
     };
+  });
+
+  app.register(analysisRoutes, {
+    prefix: "/api/analyses",
   });
 
   return app;
