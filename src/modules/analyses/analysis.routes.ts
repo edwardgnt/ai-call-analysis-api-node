@@ -3,7 +3,7 @@ import { z } from "zod";
 import { db } from "../../db/client.js";
 import { analyses } from "../../db/schema.js";
 import { analyzeCallTranscript } from "./analysis.engine.js";
-import { desc } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 
 const createAnalysisSchema = z.object({
   customerName: z.string().trim().min(1).max(100),
@@ -15,7 +15,12 @@ const listAnalysesQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(25),
 });
 
+const getAnalysisParamsSchema = z.object({
+  id: z.uuid(),
+});
+
 export async function analysisRoutes(app: FastifyInstance) {
+  // GET /api/analyses
   app.get("/", async (request, reply) => {
     const parsed = listAnalysesQuerySchema.safeParse(request.query);
 
@@ -37,6 +42,35 @@ export async function analysisRoutes(app: FastifyInstance) {
     });
   });
 
+  // GET /api/analyses/:id
+  app.get("/:id", async (request, reply) => {
+    const parsed = getAnalysisParamsSchema.safeParse(request.params);
+
+    if (!parsed.success) {
+      return reply.code(400).send({
+        message: "Validation failed",
+        errors: parsed.error.flatten().fieldErrors,
+      });
+    }
+
+    const [record] = await db
+      .select()
+      .from(analyses)
+      .where(eq(analyses.id, parsed.data.id))
+      .limit(1);
+
+    if (!record) {
+      return reply.code(404).send({
+        message: "Analysis not found",
+      });
+    }
+
+    return reply.send({
+      analysis: record,
+    });
+  });
+
+  // POST /api/analyses
   app.post("/", async (request, reply) => {
     const parsed = createAnalysisSchema.safeParse(request.body);
 
