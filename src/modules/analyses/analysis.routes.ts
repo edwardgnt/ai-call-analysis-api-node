@@ -3,6 +3,7 @@ import { z } from "zod";
 import { db } from "../../db/client.js";
 import { analyses } from "../../db/schema.js";
 import { analyzeCallTranscript } from "./analysis.engine.js";
+import { desc } from "drizzle-orm";
 
 const createAnalysisSchema = z.object({
   customerName: z.string().trim().min(1).max(100),
@@ -10,7 +11,32 @@ const createAnalysisSchema = z.object({
   transcript: z.string().trim().min(20).max(10000),
 });
 
+const listAnalysesQuerySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(100).default(25),
+});
+
 export async function analysisRoutes(app: FastifyInstance) {
+  app.get("/", async (request, reply) => {
+    const parsed = listAnalysesQuerySchema.safeParse(request.query);
+
+    if (!parsed.success) {
+      return reply.code(400).send({
+        message: "Validation failed",
+        errors: parsed.error.flatten().fieldErrors,
+      });
+    }
+
+    const records = await db
+      .select()
+      .from(analyses)
+      .orderBy(desc(analyses.createdAt))
+      .limit(parsed.data.limit);
+
+    return reply.send({
+      analyses: records,
+    });
+  });
+
   app.post("/", async (request, reply) => {
     const parsed = createAnalysisSchema.safeParse(request.body);
 
