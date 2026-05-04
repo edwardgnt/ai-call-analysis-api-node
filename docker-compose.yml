@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: ai_call_analysis_postgres
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: ai_call_analysis
+      POSTGRES_USER: ai_user
+      POSTGRES_PASSWORD: ai_password
+    volumes:
+      - ai_call_analysis_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  ai_call_analysis_postgres_data:
