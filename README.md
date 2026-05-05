@@ -39,6 +39,14 @@ The initial version uses mock analysis logic to keep the project cost-free, pred
 | Production Build | TypeScript compiler |
 
 
+## Testing
+
+Run the test suite:
+
+```bash
+npm test
+
+
 ## API Examples
 
 See [docs/api-examples.md](docs/api-examples.md) for sample curl requests and response examples.
