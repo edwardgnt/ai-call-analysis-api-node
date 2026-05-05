@@ -103,4 +103,31 @@ export async function analysisRoutes(app: FastifyInstance) {
       analysis: createdAnalysis,
     });
   });
+
+  // DELETE /api/analyses/:id
+  app.delete("/:id", async (request, reply) => {
+    const parsed = getAnalysisParamsSchema.safeParse(request.params);
+
+    if (!parsed.success) {
+      return reply.code(400).send({
+        message: "Validation failed",
+        errors: parsed.error.flatten().fieldErrors,
+      });
+    }
+
+    const [deletedAnalysis] = await db
+      .delete(analyses)
+      .where(eq(analyses.id, parsed.data.id))
+      .returning({
+        id: analyses.id,
+      });
+
+    if (!deletedAnalysis) {
+      return reply.code(404).send({
+        message: "Analysis not found",
+      });
+    }
+
+    return reply.code(204).send();
+  });
 }
