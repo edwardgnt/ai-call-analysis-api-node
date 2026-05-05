@@ -45,6 +45,13 @@ Run the test suite:
 
 ```bash
 npm test
+```
+
+Run tests in watch mode:
+
+```bash
+npm run test:watch
+```
 
 
 ## API Examples
